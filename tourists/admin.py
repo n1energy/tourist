@@ -17,7 +17,7 @@ from tourists import views
 
 class DatelineForHotelInline(admin.TabularInline):
     model = DatelineForHotel
-    extra = 1
+    extra = 2
 
 
 class TimelineForNutritionInline(admin.TabularInline):
