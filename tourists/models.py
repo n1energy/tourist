@@ -130,6 +130,24 @@ class Tourist(models.Model):
         list_of_business = [i for i in all_business]
         return start_gantt(list_of_business)
 
+    def check_doc(self):
+        doc_pack = Tourist.objects.filter(
+            id=self.id
+        ).values('visa', 'insurance', 'passport', 'others')
+        for pack in doc_pack:
+            for _, doc in pack.items():
+                if doc is None or doc == '':
+                    return False
+        return True
+
+    def check_hotel(self):
+        hotels = DatelineForHotel.objects.filter(tourist=self.id).values_list('hotel__name', flat=True)
+        return hotels
+
+    def check_nutrition(self):
+        nutritions = TimelineForNutrition.objects.filter(tourist=self.id).values_list('nutrition__name', flat=True)
+        return nutritions
+
     def __str__(self):
         """ Функция, отображающая имя туриста и его телефон"""
         return f'{self.name} {self.phone}'
@@ -137,7 +155,12 @@ class Tourist(models.Model):
     class Meta:
         verbose_name_plural = "Туристы" 
         permissions = (("can_edit", "Editing data"),
-                       ("can_get_report", "Getting report"), )   
+                       ("can_get_report", "Getting report"), )
+
+
+
+
+
 
 
 class Event(models.Model):
@@ -311,3 +334,12 @@ class Hotel(models.Model):
     class Meta:
         verbose_name = 'Отель'
         verbose_name_plural = 'Отели'
+
+
+class FeedFile(models.Model):
+    file = models.FileField(blank=True, null=True, upload_to="files/%Y/%m/%d")
+    feed = models.ForeignKey(Tourist, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = 'Другие документы'
+        verbose_name_plural = 'Другие документы'
