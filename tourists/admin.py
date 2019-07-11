@@ -11,13 +11,13 @@ from django.utils.html import format_html
 from django.urls import reverse
 
 from tourists.models import (TimelineForNutrition, DatelineForHotel, 
-TimelineForExcursion, Tourist, Event, Group, Hotel, Excursion, Nutrition)
-from tourists import widgets, views
+TimelineForExcursion, Tourist, Event, Group, Hotel, Excursion, Nutrition, FeedFile)
+from tourists import views
 
 
 class DatelineForHotelInline(admin.TabularInline):
     model = DatelineForHotel
-    extra = 1
+    extra = 2
 
 
 class TimelineForNutritionInline(admin.TabularInline):
@@ -42,6 +42,10 @@ class TimelineForExcursionInline(admin.TabularInline):
     readonly_fields = ['event']
     show_change_link = True
 
+class FeedFileInline(admin.StackedInline):
+    model = FeedFile
+    extra = 2
+
 
 class TouristAdminForm(ModelForm):
 
@@ -56,7 +60,7 @@ class TouristAdminForm(ModelForm):
                   'passport',
                   'others',
                   'group')
-        widgets = {'others':widgets.MultiFileInput}
+        # widgets = {'others': widgets.MultiFileInput}
 
 
 class TouristAdmin(admin.ModelAdmin):
@@ -72,6 +76,7 @@ class TouristAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     filter_horizontal = ('excursion',)
     inlines = [
+        FeedFileInline,
         TimelineForNutritionInline,
         TimelineForExcursionInline,
         DatelineForHotelInline,
@@ -118,8 +123,9 @@ class TouristAdmin(admin.ModelAdmin):
                 # если никто в это время не питается и запрос вернулся пустой
                 # cоздаём новое событие для Питания
                 if not tl_nutr:
-                    new_event = Event.objects.create(name=
-                        f"Питание в {instance.time_from}",status='p')
+                    new_event = Event.objects.create(
+                        name=f"Питание в {instance.time_from}", status='p'
+                    )
                     instance.event = new_event
                 else:
                     instance.event = tl_nutr.event 
@@ -182,7 +188,7 @@ class HotelAdmin(admin.ModelAdmin):
     list_display = ('name', 'addres', 'phone')
     list_filter = ('cost_for_one_day',)
     ordering = ('-cost_for_one_day',)
-    list_filter =('name',)
+    list_filter = ('name',)
 
 
 class NutritionAdmin(admin.ModelAdmin):
@@ -218,7 +224,7 @@ class EventAdmin(admin.ModelAdmin):
         TimelineForExcursionEventInline,
     ]
 
-
+admin.site.site_url = '/crm'
 admin.site.register(Group, GroupAdmin)
 admin.site.register(Tourist, TouristAdmin)
 admin.site.register(Nutrition, NutritionAdmin)
